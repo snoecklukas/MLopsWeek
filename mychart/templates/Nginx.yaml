@@ -1,0 +1,42 @@
+{{- $name := "nginx" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - image: {{ .Values.repository }}/week01-nginx:{{ .Values.app.version.nginx }}
+        name: {{ $name }}
+        ports:
+        - containerPort: 80
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  ports:
+  - name: "http"
+    port: 80
+    targetPort: 80
+  selector:
+    app: {{ $name }}
+status:
+  loadBalancer: {}

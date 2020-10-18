@@ -1,0 +1,16 @@
+env:
+  webapp:
+    PG_DATABASE: labo
+    PG_HOST: postgres
+    PG_PORT: "5432"
+  postgres:
+    POSTGRES_DB: labo
+
+app:
+  version: 
+    webapp: 1.0.0
+    nginx: 1.0.0
+
+repository: 'nathansegers'
+loadBalancer:
+  IP: ...

@@ -1,0 +1,66 @@
+{{- $name := "webapp" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - args:
+        - uwsgi
+        - --ini
+        - app.ini
+        env:
+        {{- range $key, $value := .Values.env.webapp }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        - name: PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: username
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysecret
+              key: password
+        - name: RELEASE_NAME
+          value: {{ .Release.Name }}
+        - name: RELEASE_VERSION
+          value: {{ .Release.Revision | quote }}
+        image: {{ .Values.repository }}/week01-webapp:{{ .Values.app.version.webapp }}
+        name: {{ $name }}
+        resources: {}
+        ports:
+          - containerPort: 5000
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  ports:
+  - name: "flask"
+    port: 5000
+    targetPort: 5000
+  selector:
+    app: {{ $name }}
+status:
+  loadBalancer: {}
+

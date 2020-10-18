@@ -1,0 +1,18 @@
+{{- $name := "webapp" -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  rules:
+    - host: {{ $name }}.{{ .Release.Namespace }}.{{ .Values.loadBalancer.IP }}.xip.io
+      http:
+        paths:
+          - backend:
+              serviceName: nginx
+              servicePort: 80
+          - backend:
+              serviceName: nginx
+              servicePort: 443

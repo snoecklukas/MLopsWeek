@@ -1,0 +1,63 @@
+{{- $name := "postgres" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:12.1-alpine
+        ports:
+          - containerPort: 5432
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-pv-claim
+        env:
+          {{- range $key, $value := .Values.env.postgres }}
+          - name: {{ $key }}
+            value: {{ $value }}
+          {{- end }}
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: password
+        resources: {}
+      restartPolicy: Always
+      volumes:
+      - name: postgres-pv-claim
+        persistentVolumeClaim:
+          claimName: postgres-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ $name }}
+  name: {{ $name }}
+spec:
+  ports:
+  - name: "postgres"
+    port: 5432
+    targetPort: 5432
+  selector:
+    app: {{ $name }}
+status:
+  loadBalancer: {}
